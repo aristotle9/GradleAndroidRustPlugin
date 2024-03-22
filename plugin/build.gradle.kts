@@ -1,16 +1,15 @@
 plugins {
     `kotlin-dsl`
-    id("kotlin")
     id("java-gradle-plugin")
-    id("com.gradle.plugin-publish") version "1.1.0"
+    // id("com.gradle.plugin-publish") version "1.2.0"
 }
 
 group = "io.github.MatrixDev.android-rust"
 version = "0.3.2"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 repositories {
@@ -18,11 +17,11 @@ repositories {
     mavenCentral()
 }
 
-pluginBundle {
-    website = "https://github.com/MatrixDev/GradleAndroidRustPlugin"
-    vcsUrl = "https://github.com/MatrixDev/GradleAndroidRustPlugin.git"
-    tags = listOf("android", "rust", "jni")
-}
+// pluginBundle {
+//     website = "https://github.com/MatrixDev/GradleAndroidRustPlugin"
+//     vcsUrl = "https://github.com/MatrixDev/GradleAndroidRustPlugin.git"
+//     tags = listOf("android", "rust", "jni")
+// }
 
 gradlePlugin {
     plugins {
@@ -35,19 +34,19 @@ gradlePlugin {
     }
 }
 
-publishing {
-    repositories {
-        maven {
-            url = uri(layout.buildDirectory.dir("repo"))
-        }
-    }
-}
+// publishing {
+//     repositories {
+//         maven {
+//             url = uri(layout.buildDirectory.dir("repo"))
+//         }
+//     }
+// }
 
 dependencies {
     implementation(kotlin("stdlib"))
 
     gradleApi()
 
-    implementation("com.android.tools.build:gradle:7.1.3")
-    implementation("com.android.tools.build:gradle-api:7.1.3")
+    implementation("com.android.tools.build:gradle:8.3.0")
+    implementation("com.android.tools.build:gradle-api:8.3.0")
 }

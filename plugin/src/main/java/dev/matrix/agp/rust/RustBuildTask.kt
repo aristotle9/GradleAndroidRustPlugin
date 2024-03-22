@@ -4,11 +4,13 @@ import dev.matrix.agp.rust.utils.Abi
 import dev.matrix.agp.rust.utils.Os
 import dev.matrix.agp.rust.utils.SemanticVersion
 import org.gradle.api.DefaultTask
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.MapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.TaskAction
 import java.io.File
-import java.util.*
+import java.util.Locale
 
 internal abstract class RustBuildTask : DefaultTask() {
     @get:Input
@@ -35,6 +37,15 @@ internal abstract class RustBuildTask : DefaultTask() {
     @get:Input
     abstract val variantJniLibsDirectory: Property<File>
 
+    @get:Input
+    abstract val env: MapProperty<String, String>
+
+    @get:Input
+    abstract val rustflags: ListProperty<String>
+
+    @get:Input
+    abstract val verbose: Property<Boolean>
+
     @TaskAction
     fun taskAction() {
         val abi = abi.get()
@@ -45,6 +56,9 @@ internal abstract class RustBuildTask : DefaultTask() {
         val rustProjectDirectory = rustProjectDirectory.get()
         val cargoTargetDirectory = cargoTargetDirectory.get()
         val variantJniLibsDirectory = variantJniLibsDirectory.get()
+        val rustflags = rustflags.get()
+        val env = env.get()
+        val verbose = verbose.get()
 
         val platform = when (Os.current) {
             Os.Linux -> "linux-x86_64"
@@ -58,9 +72,8 @@ internal abstract class RustBuildTask : DefaultTask() {
         val cxx = File(toolchainFolder, abi.ccx(apiLevel))
         val ar = File(toolchainFolder, abi.ar(ndkVersion.major))
 
-        val cargoTargetTriplet = abi.rustTargetTriple
-            .replace('-', '_')
-            .toUpperCase(Locale.getDefault())
+        val cargoTargetTriplet =
+            abi.rustTargetTriple.replace('-', '_').uppercase(Locale.getDefault())
 
         project.exec {
             standardOutput = System.out
@@ -73,11 +86,23 @@ internal abstract class RustBuildTask : DefaultTask() {
             environment("CARGO_TARGET_DIR", cargoTargetDirectory.absolutePath)
             environment("CARGO_TARGET_${cargoTargetTriplet}_LINKER", cc)
 
+            val rustflagsString = rustflags.joinToString(" ")
+
+            val updatedRustFlags = env["RUSTFLAGS"]?.let { existingFlags ->
+                "$existingFlags $rustflagsString"
+            } ?: rustflagsString
+
+            environment(env + ("RUSTFLAGS" to updatedRustFlags))
+
             commandLine("cargo")
 
             args("build")
             args("--lib")
             args("--target", abi.rustTargetTriple)
+
+            if (verbose) {
+                args("--verbose")
+            }
 
             if (rustProfile.isNotEmpty()) {
                 args("--profile", rustProfile)

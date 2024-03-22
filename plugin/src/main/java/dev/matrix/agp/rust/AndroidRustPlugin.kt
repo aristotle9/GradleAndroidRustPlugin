@@ -72,6 +72,9 @@ class AndroidRustPlugin : Plugin<Project> {
                             this.rustProjectDirectory.set(module.path)
                             this.cargoTargetDirectory.set(moduleBuildDirectory)
                             this.variantJniLibsDirectory.set(variantJniLibsDirectory)
+                            this.rustflags.set(rustConfiguration.rustflags)
+                            this.env.set(rustConfiguration.env)
+                            this.verbose.set(rustConfiguration.verbose ?: false)
                         }
                         buildTask.dependsOn(testTask ?: cleanTask)
                         tasksByBuildType.getOrPut(buildType.name, ::ArrayList).add(buildTask)
@@ -138,6 +141,16 @@ class AndroidRustPlugin : Plugin<Project> {
                 if (result.runTests == null) {
                     result.runTests = base.runTests
                 }
+                if (result.verbose == null) {
+                    result.verbose = base.verbose
+                }
+
+                result.rustflags = base.rustflags + result.rustflags
+
+                val env = base.env
+                env += result.env
+                result.env = env
+
                 result
             }
     }

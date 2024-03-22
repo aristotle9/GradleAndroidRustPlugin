@@ -45,4 +45,7 @@ open class AndroidRustConfiguration {
     var profile = ""
     var targets = listOf<String>()
     var runTests: Boolean? = null
+    var verbose: Boolean? = null
+    var env = mutableMapOf<String, String>()
+    var rustflags = emptyList<String>()
 }
